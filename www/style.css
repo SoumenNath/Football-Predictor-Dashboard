@@ -1,0 +1,63 @@
+/* General page background and text */
+body {
+  background-color: #f4f6f9;
+  font-family: 'Segoe UI', 'Roboto', sans-serif;
+  color: #222;
+  margin: 0;
+}
+
+/* Title panel */
+h2, h3 {
+  color: #0072B2;
+  font-weight: 600;
+}
+
+/* Sidebar styling */
+.well {
+  background-color: #ffffff;
+  border: 1px solid #dcdcdc;
+  border-radius: 8px;
+  padding: 15px;
+}
+
+/* Inputs (like dropdowns, sliders) */
+select, input[type="text"], input[type="number"] {
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  padding: 6px 10px;
+  font-size: 14px;
+  width: 100%;
+}
+
+/* Action buttons */
+button, .btn {
+  background-color: #0072B2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+button:hover, .btn:hover {
+  background-color: #005f8f;
+}
+
+/* Data table styling */
+table.dataTable {
+  font-size: 14px;
+}
+
+.dataTables_wrapper .dataTables_filter input {
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  padding: 5px;
+}
+
+/* Plot spacing */
+.plotly {
+  margin-top: 15px;
+  margin-bottom: 15px;
+}

@@ -1,0 +1,29 @@
+Match Prediction feature based on season and then compare to how that season actually happened
+Ask AI what features to add
+
+Entire app
+Add download buttons (CSV/PDF)
+Include team logos
+Deploy it on shinyapps.io or RStudio Connect!
+
+goal trends
+Add match result icons (W/D/L) on the goal plot
+Show rolling averages
+Or display a table of highs/lows below the plot!
+a goal timing hisogrram (every 15 mins)
+
+team performance
+Break this down by match week
+Compare vs opponents' cards
+
+match predictor
+use a logistic regression or multinomial model trained on historical matches. You can base it on features like:
+Team strength (avg goals for/against)
+Home vs Away
+Recent form
+League position (optional)
+Later, you can replace it with Random Forests, XGBoost, or even neural nets.
+
+This is a basic model using goal difference — a better one might include form, team averages,  cards, home advantage
+Let users simulate a whole round of matches
+Display prediction probabilities (not just the label)
