@@ -5,6 +5,7 @@ library(tidyverse)
 library(lubridate)
 library(DT)
 library(plotly)
+library(nnet)
 
 # Load all datasets from 2018 onwards
 season_files <- list.files("data", pattern = "epl_\\d{4}_\\d{4}_cleaned.csv", full.names = TRUE)
@@ -33,7 +34,19 @@ ui <- fluidPage(
         tabPanel("Match Results", dataTableOutput("match_table")),
         tabPanel("Team Performance", tableOutput("performance_table")),
         tabPanel("Goal Trends", plotlyOutput("goal_plot")),
-        tabPanel("Discipline", plotlyOutput("card_plot"))
+        tabPanel("Discipline", plotlyOutput("card_plot")),
+        tabPanel("Match Predictor",
+                 fluidRow(
+                   column(4,
+                          selectInput("predict_home", "Home Team", choices = NULL),
+                          selectInput("predict_away", "Away Team", choices = NULL),
+                          actionButton("run_prediction", "Predict Outcome")
+                   ),
+                   column(8,
+                          verbatimTextOutput("prediction_result")
+                   )
+                 )
+        )
       )
     )
   )
@@ -47,6 +60,8 @@ server <- function(input, output, session) {
     season_df <- season_data[[input$selected_season]]
     teams <- sort(unique(c(season_df$HomeTeam, season_df$AwayTeam)))
     updateSelectInput(session, "selected_team", choices = c("All Teams", teams), selected = "All Teams")
+    updateSelectInput(session, "predict_home", choices = teams)
+    updateSelectInput(session, "predict_away", choices = teams)
   })
   
   # Reactive: get data for selected season
@@ -141,8 +156,44 @@ server <- function(input, output, session) {
     }
   })
   
+  # Train model based on selected season
+  model_fit <- reactive({
+    data <- season_matches() %>%
+      mutate(
+        Outcome = case_when(
+          FTHG > FTAG ~ "HomeWin",
+          FTHG < FTAG ~ "AwayWin",
+          TRUE ~ "Draw"
+        ),
+        GoalDiff = FTHG - FTAG
+      )
+    
+    multinom(Outcome ~ GoalDiff, data = data)
+  })
+  
+  # Prediction logic
+  observeEvent(input$run_prediction, {
+    req(input$predict_home, input$predict_away)
+    
+    data <- season_matches() %>%
+      mutate(GoalDiff = FTHG - FTAG)
+    
+    avg_diff <- data %>%
+      group_by(HomeTeam) %>%
+      summarise(avg_diff = mean(GoalDiff, na.rm = TRUE), .groups = "drop")
+    
+    home_strength <- avg_diff$avg_diff[avg_diff$HomeTeam == input$predict_home]
+    away_strength <- avg_diff$avg_diff[avg_diff$HomeTeam == input$predict_away]
+    
+    predicted <- predict(model_fit(), newdata = data.frame(GoalDiff = home_strength - away_strength), type = "class")
+    
+    output$prediction_result <- renderPrint({
+      cat("Predicted Outcome:", predicted)
+    })
+  })
+  
   # Goal Trends plot
-  output$goal_plot <- renderPlotly({
+  output$goal_plot <- renderPlotly({ 
     if (input$selected_team == "All Teams") {
       team_data <- season_matches() %>%
         mutate(Matchday = as.integer(factor(Date))) %>%
@@ -178,13 +229,12 @@ server <- function(input, output, session) {
         theme(legend.title = element_blank())
       
       ggplotly(p)
-    }
+    } 
   })
   
   # Discipline plot
-  output$card_plot <- renderPlotly({
+  output$card_plot <- renderPlotly({ 
     data <- filtered_matches()
-    
     if (input$selected_team == "All Teams") {
       card_data <- season_matches() %>%
         group_by(HomeTeam) %>%
